@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">抽奖应用</string>
+    <string name="button_lottery">开始抽奖</string>
+    <string name="result_title">抽奖结果</string>
+    <string name="result_subtitle">恭喜您获得</string>
+    <string name="empty_prize_pool">奖池为空，请先添加奖品</string>
+</resources>
