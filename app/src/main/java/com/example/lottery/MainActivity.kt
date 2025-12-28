@@ -1,6 +1,8 @@
 package com.example.lottery
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AlphaAnimation
@@ -18,6 +20,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: LotteryViewModel
     private var isPrizePoolVisible = false
+    private val READ_JSON_REQUEST_CODE = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,7 +60,12 @@ class MainActivity : AppCompatActivity() {
 
         // 设置添加奖品按钮点击事件
         binding.addPrizeButton.setOnClickListener {
-            showAddPrizeDialog()
+            showAddPrizeOptionsDialog()
+        }
+
+        // 设置清空奖池按钮点击事件
+        binding.clearPrizeButton.setOnClickListener {
+            showClearPrizeDialog()
         }
 
         // 设置展开/收起奖品池按钮点击事件
@@ -66,19 +74,66 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun openFilePicker() {
+        // 创建文件选择意图
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.type = "application/json"
+        
+        // 启动文件选择器
+        startActivityForResult(intent, READ_JSON_REQUEST_CODE)
+    }
+
     private fun togglePrizePoolVisibility() {
         isPrizePoolVisible = !isPrizePoolVisible
         if (isPrizePoolVisible) {
-            // 显示奖品池和添加按钮
+            // 显示奖品池和操作按钮
             binding.prizePoolScroll.visibility = View.VISIBLE
             binding.addPrizeButton.visibility = View.VISIBLE
+            binding.clearPrizeButton.visibility = View.VISIBLE
+            binding.buttonLayout.visibility = View.VISIBLE
             binding.togglePrizePoolButton.text = "收起"
         } else {
-            // 隐藏奖品池和添加按钮
+            // 隐藏奖品池和操作按钮
             binding.prizePoolScroll.visibility = View.GONE
             binding.addPrizeButton.visibility = View.GONE
+            binding.clearPrizeButton.visibility = View.GONE
+            binding.buttonLayout.visibility = View.GONE
             binding.togglePrizePoolButton.text = "管理奖品"
         }
+    }
+
+    /**
+     * 显示添加奖品选项对话框
+     */
+    private fun showAddPrizeOptionsDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("添加奖品")
+            .setItems(arrayOf("手动添加单个奖品", "从JSON文件导入奖品")) { dialog, which ->
+                when (which) {
+                    0 -> showAddPrizeDialog() // 手动添加单个奖品
+                    1 -> openFilePicker() // 从JSON文件导入奖品
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("取消") { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
+
+    /**
+     * 显示清空奖池确认对话框
+     */
+    private fun showClearPrizeDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("清空奖池")
+            .setMessage("确定要清空所有奖品吗？此操作不可恢复。")
+            .setPositiveButton("确定") { dialog, _ ->
+                viewModel.clearPrizePool()
+                updatePrizePoolDisplay()
+                dialog.dismiss()
+            }
+            .setNegativeButton("取消") { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 
     private fun performLottery() {
@@ -192,6 +247,55 @@ class MainActivity : AppCompatActivity() {
                 dialog.dismiss()
             }
             .setNegativeButton("取消") { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        
+        if (requestCode == READ_JSON_REQUEST_CODE && resultCode == RESULT_OK) {
+            data?.data?.let { uri ->
+                // 读取JSON文件内容
+                val jsonString = readJsonFile(uri)
+                if (jsonString != null) {
+                    // 导入奖品
+                    val success = viewModel.importPrizesFromJson(jsonString)
+                    if (success) {
+                        // 导入成功，更新UI
+                        updatePrizePoolDisplay()
+                        showSuccessDialog("奖品导入成功！")
+                    } else {
+                        // 导入失败
+                        showErrorDialog("JSON文件格式错误，导入失败！")
+                    }
+                } else {
+                    // 文件读取失败
+                    showErrorDialog("无法读取JSON文件！")
+                }
+            }
+        }
+    }
+
+    private fun readJsonFile(uri: Uri): String? {
+        return try {
+            contentResolver.openInputStream(uri)?.use { inputStream ->
+                inputStream.bufferedReader().use { reader ->
+                    reader.readText()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun showSuccessDialog(message: String) {
+        AlertDialog.Builder(this)
+            .setTitle("成功")
+            .setMessage(message)
+            .setPositiveButton("确定") { dialog, _ -> dialog.dismiss() }
+            .setCancelable(false)
             .show()
     }
 }

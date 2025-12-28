@@ -18,20 +18,37 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-
-        <LinearLayout
+        
+        <!-- 卡片背景图片支持 -->
+        <!-- 将图片命名为 card_background.png 并放入 res/drawable 目录即可使用 -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="20dp">
+            android:layout_height="match_parent">
+            
+            <!-- 背景图片层 -->
+            <!-- 将图片命名为 card_background.png 并放入 res/drawable 目录即可使用 -->
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:background="@color/white"
+                android:alpha="0.8" 
+                android:src="@drawable/card_background" />
+            
+            <!-- 前景内容布局 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="20dp">
 
             <TextView
                 android:id="@+id/result_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                android:text="点击下方按钮开始抽奖"
+                android:text="点击开始随机选择"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -50,7 +67,8 @@
                 app:iconGravity="textStart"
                 app:iconPadding="8dp"
                 app:rippleColor="@color/white" />
-        </LinearLayout>
+            </LinearLayout>
+        </FrameLayout>
     </androidx.cardview.widget.CardView>
 
     <com.google.android.material.button.MaterialButton
@@ -86,15 +104,33 @@
         </LinearLayout>
     </ScrollView>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/add_prize_button"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/button_layout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:contentDescription="添加奖品"
-        android:src="@drawable/ic_baseline_add_24"
+        android:orientation="horizontal"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/clear_prize_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="清空奖池"
+            android:textSize="14sp"
+            app:cornerRadius="20dp" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/add_prize_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="添加奖品"
+            android:src="@drawable/ic_baseline_add_24" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,6 +3,8 @@ package com.example.lottery
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import kotlin.random.Random
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException
 
@@ -23,12 +25,7 @@ class LotteryViewModel(private val context: Context) : ViewModel() {
 
     private fun addDefaultPrizes() {
         _prizePool.addAll(listOf(
-            "一等奖：智能手机",
-            "二等奖：平板电脑",
-            "三等奖：无线耳机",
-            "四等奖：充电宝",
-            "五等奖：精美礼品",
-            "参与奖：谢谢参与"
+            "None"
         ))
         savePrizesToFile()
     }
@@ -85,5 +82,24 @@ class LotteryViewModel(private val context: Context) : ViewModel() {
     fun clearPrizePool() {
         _prizePool.clear()
         savePrizesToFile()
+    }
+
+    // 从JSON字符串导入奖品列表
+    fun importPrizesFromJson(jsonString: String): Boolean {
+        return try {
+            // 解析JSON数组
+            val prizes = Json.decodeFromString<List<String>>(jsonString)
+            
+            // 清空现有奖池，添加新奖品，保持原顺序
+            _prizePool.clear()
+            _prizePool.addAll(prizes)
+            
+            // 保存到本地文件
+            savePrizesToFile()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
 }
